@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using BS_Utils.Utilities;
+using UnityEngine;
 using static BeatmapSaveData;
 
 namespace BeatSaviorData
@@ -15,6 +17,7 @@ namespace BeatSaviorData
 
 		private int combo;
 		private ScoreController sc;
+        private MemoryPoolContainer<GameNoteController> notePool;
 		private PlayerHeadAndObstacleInteraction phaoi;
 
 		public void RegisterCollector(SongData data)
@@ -22,7 +25,20 @@ namespace BeatSaviorData
 			Note.ResetID();
 			SwingTranspilerHandler.Reset();
 
-			sc = data.GetScoreController();
+			var recorder = Resources.FindObjectsOfTypeAll<BeatmapObjectExecutionRatingsRecorder>().FirstOrDefault();
+            var objectManager = recorder.GetPrivateField<BeatmapObjectManager>("_beatmapObjectManager");
+
+            if (objectManager is BasicBeatmapObjectManager)
+            {
+                Logger.log.Info($"BSD : Found BasicBeatmapObjectManager");
+				notePool = objectManager.GetPrivateField<MemoryPoolContainer<GameNoteController>>("_gameNotePoolContainer");
+            }
+            else
+            {
+                Logger.log.Warn($"BSD : Unable to find BasicBeatmapObjectManager. Instead found '{objectManager.GetType().Name}'");
+			}
+
+            sc = data.GetScoreController();
 			data.GetScoreController().noteWasCutEvent += OnNoteCut;
 			data.GetScoreController().noteWasMissedEvent += OnNoteMiss;
 			data.GetScoreController().comboBreakingEventHappenedEvent += BreakCombo;
@@ -41,7 +57,30 @@ namespace BeatSaviorData
 		}
 
 		private void OnNoteCut(NoteData data, in NoteCutInfo info, int multiplier)
-		{
+        {
+            var activeNotes = notePool.activeItems;
+
+            GameNoteController foundNote = null;
+
+            foreach (var activeNote in activeNotes)
+            {
+                if (activeNote.noteData == data)
+                {
+                    foundNote = activeNote;	
+                    break;
+                }
+            }
+
+            if (foundNote != null)
+            {
+                var notePosition = foundNote.transform.position;
+                Logger.log.Info($"BSD : Cut note at {notePosition.x:G9}");
+			}
+            else
+            {
+				Logger.log.Info($"BSD : Failed to find GameNoteController for note");
+			}
+
 			// (data.colorType != ColorType.None) checks if it is not a bomb
 			if (info.allIsOK && data.colorType != ColorType.None)
 			{

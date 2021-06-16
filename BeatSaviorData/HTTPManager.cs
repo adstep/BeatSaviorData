@@ -16,7 +16,7 @@ namespace BeatSaviorData
 			{
 				try
 				{
-					await Upload(json, PrivateKeys.BeatSaviorPlayerDataUploadURL);
+					//await Upload(json, PrivateKeys.BeatSaviorPlayerDataUploadURL);
 				}
 				catch (Exception ex)
 				{
@@ -36,7 +36,7 @@ namespace BeatSaviorData
 			{
 				try
 				{
-					await Upload(json, PrivateKeys.BeatSaviorSongUploadUrl);
+					//await Upload(json, PrivateKeys.BeatSaviorSongUploadUrl);
 				}
 				catch (Exception ex)
 				{
@@ -53,7 +53,7 @@ namespace BeatSaviorData
 			{
 				try
 				{
-					await Upload(tinyJson, PrivateKeys.BSFRUploadNotifierUrl);
+					//await Upload(tinyJson, PrivateKeys.BSFRUploadNotifierUrl);
 				}
 				catch (Exception ex)
 				{
